@@ -16,6 +16,12 @@ public class DataInfo {
     private float end;
     private float max;
     private float min;
+    private float ma;
+    private float emaSlow;
+    private float emaFast;
+    private float dif;
+    private float dea;
+    private float macd;
 
     public DataInfo() {
     }
@@ -75,6 +81,54 @@ public class DataInfo {
 
     public void setTime(long time) {
         this.time = time;
+    }
+
+    public float getDea() {
+        return dea;
+    }
+
+    public void setDea(float dea) {
+        this.dea = dea;
+    }
+
+    public float getDif() {
+        return dif;
+    }
+
+    public void setDif(float dif) {
+        this.dif = dif;
+    }
+
+    public float getEmaFast() {
+        return emaFast;
+    }
+
+    public void setEmaFast(float emaFast) {
+        this.emaFast = emaFast;
+    }
+
+    public float getEmaSlow() {
+        return emaSlow;
+    }
+
+    public void setEmaSlow(float emaSlow) {
+        this.emaSlow = emaSlow;
+    }
+
+    public float getMa() {
+        return ma;
+    }
+
+    public void setMa(float ma) {
+        this.ma = ma;
+    }
+
+    public float getMacd() {
+        return macd;
+    }
+
+    public void setMacd(float macd) {
+        this.macd = macd;
     }
 
     @Override

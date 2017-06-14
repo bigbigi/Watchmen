@@ -46,8 +46,12 @@ public class HomeActivity extends Activity {
             public void run() {
                 String ret = DataUtils.readFile(android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/watch", "test.txt");
                 addDataInfo(ret);
-                getBollInfo(2, DataInfoDb.getInstance(HomeActivity.this).getRecord());
-//                Log.d("big", "dataInfo-->" + DataInfoDb.getInstance(HomeActivity.this).getRecord());
+                List<DataInfo> list = DataInfoDb.getInstance(HomeActivity.this).getRecord();
+                List<DataInfo> weekList = getWeekDataInfo(list);
+                getBollInfo(99, weekList);
+                getMacdInfo(1, 1, 1, weekList);
+                getBollInfo(99, list);
+                getMacdInfo(1, 1, 1, list);
             }
         }.start();
         SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd/HH/mm");
@@ -108,7 +112,75 @@ public class HomeActivity extends Activity {
         }
         return bollList;
     }
-    private void getMacdInfo(){
 
+    private void getMacdInfo(int param1, int param2, int param3, List<DataInfo> dataList) {
+        for (int i = 0; i < dataList.size(); i++) {
+            DataInfo dataInfo = dataList.get(0);
+            if (i == 0) {
+                dataInfo.setEmaFast(dataInfo.getEnd());
+                dataInfo.setEmaSlow(dataInfo.getEnd());
+                continue;
+            }
+            float emaFast = getEma(param1, dataList.get(i - 1).getEmaFast(), dataInfo.getEnd());
+            float emaSlow = getEma(param2, dataList.get(i - 1).getEmaSlow(), dataInfo.getEnd());
+            float dea = getEma(param3, dataList.get(i - 1).getDea(), dataInfo.getDif());
+            dataInfo.setEmaFast(emaFast);
+            dataInfo.setEmaSlow(emaSlow);
+            dataInfo.setDif(emaFast - emaSlow);
+            dataInfo.setDea(dea);
+            dataInfo.setMacd(2 * (dataInfo.getDif() - dataInfo.getDea()));
+        }
+    }
+
+    public float getEma(int param, float lastEma, float end) {
+        return lastEma * (param - 1) / (param + 1) - end * 2 / (param);
+    }
+
+    private List<DataInfo> getWeekDataInfo(List<DataInfo> dataList) {
+        List<DataInfo> weekList = new ArrayList<DataInfo>();
+        Calendar calendar = Calendar.getInstance();
+        float min = 0, max = 0, start = 0;
+        for (int i = 0; i < dataList.size(); i++) {
+            DataInfo info = dataList.get(i);
+            min = Math.min(min, info.getEnd());
+            max = Math.max(max, info.getEnd());
+            calendar.setTime(new Date(info.getTime()));
+            if (start == 0) {
+                start = info.getBegin();
+            }
+            if (calendar.get(Calendar.DAY_OF_WEEK) == 6) {
+                DataInfo weekInfo = new DataInfo();
+                weekInfo.setTime(info.getTime());
+                weekInfo.setEnd(info.getEnd());
+                weekInfo.setBegin(start);
+                weekInfo.setMin(min);
+                weekInfo.setMax(max);
+                start = min = max = 0;
+            }
+        }
+        return weekList;
+
+    }
+
+    private boolean check(List<DataInfo> dateList, List<DataInfo> weekList) {
+        boolean result = false;
+        DataInfo lastWeek = weekList.get(weekList.size() - 1);
+        DataInfo lastDate = dateList.get(dateList.size() - 1);
+        boolean isWeekAbove = lastWeek.getEnd() > lastWeek.getMa();
+        boolean isDateAbove = lastDate.getEnd() > lastDate.getMa();
+        boolean isWeekArise = lastWeek.getMa() > weekList.get(weekList.size() - 2).getMa();
+        boolean isDateArise = lastDate.getMa() > dateList.get(dateList.size() - 2).getMa();
+        if (isWeekAbove == isWeekArise && isDateAbove == isDateArise && isWeekAbove == isDateAbove) {
+            if (isWeekArise) {
+                if (lastDate.getMacd() >= 0 && dateList.get(dateList.size() - 2).getMacd() <= 0) {
+                    result = true;
+                }
+            } else {
+                if (lastDate.getMacd() <= 0 && dateList.get(dateList.size() - 2).getMacd() >= 0) {
+                    result = true;
+                }
+            }
+        }
+        return result;
     }
 }
