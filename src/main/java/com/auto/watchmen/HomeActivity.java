@@ -41,7 +41,33 @@ public class HomeActivity extends Activity {
         bollInfo.setTime(10000);
         BollDb.getInstance(this).addRecord(bollInfo);*/
 //        Log.d("big", "dataInfo-->" + BollDb.getInstance(this).getRecord());
+
+
         new Thread() {
+            @Override
+            public void run() {
+                float current = 1;
+                long time = Long.parseLong("1482826288494");
+                for (int i = 0; i < 240; i++) {
+                    DataInfo info = new DataInfo();
+                    info.setName("test");
+                    info.setBegin(current);
+                    current += 10 /*+ Math.random()*/;
+                    info.setEnd(current);
+                    info.setMax(Math.max((float) (current + Math.random()), current));
+                    info.setMin((float) (current - Math.random()));
+                    info.setTime(time);
+                    time += 60 * 60 * 1000;
+                    DataInfoDb.getInstance(HomeActivity.this).addRecord(info);
+                }
+                ArrayList<DataInfo> dateInfos = DataInfoDb.getInstance(HomeActivity.this).getDateRecord();
+                for (DataInfo info : dateInfos) {
+                    Log.d("big", "info:" + info.toString());
+                }
+            }
+        }.start();
+
+       /* new Thread() {
             @Override
             public void run() {
                 String ret = DataUtils.readFile(android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/watch", "test.txt");
@@ -56,7 +82,7 @@ public class HomeActivity extends Activity {
         }.start();
         SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd/HH/mm");
         Date date = new Date(Long.parseLong("1482826288494"));
-        Log.d("big", "test-->" + format.format(date));
+        Log.d("big", "test-->" + format.format(date));*/
     }
 
     private void addDataInfo(String ret) {
@@ -133,7 +159,7 @@ public class HomeActivity extends Activity {
     }
 
     public float getEma(int param, float lastEma, float end) {
-        return lastEma * (param - 1) / (param + 1) - end * 2 / (param);
+        return lastEma * (param - 1) / (param + 1) + end * 2 / (param + 1);
     }
 
     private List<DataInfo> getWeekDataInfo(List<DataInfo> dataList) {

@@ -1,5 +1,8 @@
 package com.auto.watchmen.bean;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Created by dage on 2016/12/30.
  */
@@ -22,6 +25,9 @@ public class DataInfo {
     private float dif;
     private float dea;
     private float macd;
+    private String date;
+
+    private SimpleDateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd");
 
     public DataInfo() {
     }
@@ -81,7 +87,9 @@ public class DataInfo {
 
     public void setTime(long time) {
         this.time = time;
+        date = DATA_FORMAT.format(new Date(time));
     }
+
 
     public float getDea() {
         return dea;
@@ -131,11 +139,16 @@ public class DataInfo {
         this.macd = macd;
     }
 
+    public String getDate() {
+        return date;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("name=").append(name).append(",time=").append(String.valueOf(time)).append(",begin=").
-                append(begin).append(",max=").append(max).append(",min=").append(min).append(",end=").append(end);
+                append(begin).append(",max=").append(max).append(",min=").append(min).append(",end=").append(end)
+                .append(",date=").append(date);
         return sb.toString();
     }
 }

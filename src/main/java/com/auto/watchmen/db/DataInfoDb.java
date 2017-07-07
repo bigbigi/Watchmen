@@ -26,6 +26,7 @@ public class DataInfoDb extends SQLiteOpenHelper {
     private static final String MAX = "max";
     private static final String MIN = "min";
 
+
     private Object object = new Object();
 
     private static final String CREATE_TABLE_SQL = "create table if not exists %s (%s INTEGER PRIMARY KEY,%s text,%s Long default 0,%s Float default 0,%s Float default 0,%s Float default 0,%s Float default 0)";
@@ -111,6 +112,38 @@ public class DataInfoDb extends SQLiteOpenHelper {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                if (null != cursor) {
+                    cursor.close();
+                }
+                db.close();
+            }
+            Log.d("big", "arraylist record= " + recordList.size());
+        }
+        return recordList;
+    }
+
+    public ArrayList<DataInfo> getDateRecord() {
+        ArrayList<DataInfo> recordList = new ArrayList<DataInfo>();
+        synchronized (object) {
+            Cursor cursor = null;
+            DataInfo record = null;
+            SQLiteDatabase db = getReadableDatabase();
+            try {
+                String sql = "select name,max(time) as time,max(max) as max,min(min) as min,begin,(select end from dataInfo t2 where strftime('%Y-%m-%d',t2.time/1000,'unixepoch')=strftime('%Y-%m-%d',t1.time/1000,'unixepoch') order by time desc limit 1) as end,max(t1.time) as testtime from " + TABLE_NAME + " t1 group by strftime('%Y-%m-%d',time/1000,'unixepoch')";
+
+                cursor = db.rawQuery(sql, null);
+                if (cursor != null && cursor.getCount() != 0) {
+                    for (int i = 0; i < cursor.getCount(); i++) {
+                        if (cursor.moveToNext()) {
+                            record = convert2Record(cursor);
+                            recordList.add(record);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e("big", "Exception:" + e);
             } finally {
                 if (null != cursor) {
                     cursor.close();
