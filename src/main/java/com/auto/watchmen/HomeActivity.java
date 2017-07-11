@@ -4,44 +4,29 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.auto.watchmen.base.TaskDetailContract;
 import com.auto.watchmen.bean.BollInfo;
 import com.auto.watchmen.bean.DataInfo;
 import com.auto.watchmen.db.BollDb;
 import com.auto.watchmen.db.DataInfoDb;
 import com.auto.watchmen.util.DataUtils;
+import com.auto.watchmen.util.HomePresenter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
-public class HomeActivity extends Activity {
+public class HomeActivity extends Activity implements TaskDetailContract.View {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-      /*  DataInfo info = new DataInfo();
-        info.setName("test");
-        info.setBegin(1);
-        info.setEnd(2);
-        info.setMax(3);
-        info.setMin(-1);
-        info.setTime(10000);
-        DataInfoDb.getInstance(this).addRecord(info);*/
-//        Log.d("big","dataInfo-->"+DataInfoDb.getInstance(this).getRecord());
-
-
-       /* BollInfo bollInfo = new BollInfo();
-        bollInfo.setName("test Boll");
-        bollInfo.setTop(3);
-        bollInfo.setBottom(1);
-        bollInfo.setMiddle(2);
-        bollInfo.setTime(10000);
-        BollDb.getInstance(this).addRecord(bollInfo);*/
-//        Log.d("big", "dataInfo-->" + BollDb.getInstance(this).getRecord());
-
+        new HomePresenter(this);
+        mPresenter.start();
 
         new Thread() {
             @Override
@@ -60,7 +45,7 @@ public class HomeActivity extends Activity {
                     time += 60 * 60 * 1000;
                     DataInfoDb.getInstance(HomeActivity.this).addRecord(info);
                 }
-                ArrayList<DataInfo> dateInfos = DataInfoDb.getInstance(HomeActivity.this).getDateRecord();
+                ArrayList<DataInfo> dateInfos = DataInfoDb.getInstance(HomeActivity.this).getWeekRecord();
                 for (DataInfo info : dateInfos) {
                     Log.d("big", "info:" + info.toString());
                 }
@@ -208,5 +193,47 @@ public class HomeActivity extends Activity {
             }
         }
         return result;
+    }
+
+    private static final int TREND_UP = 1;
+    private static final int TREND_DOWN = -1;
+    private static final int TREND_NO = 0;
+
+    private int checkBollTrend(List<DataInfo> dataList, HashMap<Long, BollInfo> bollMap) {
+        int trend = TREND_NO;
+        DataInfo lastDate = dataList.get(dataList.size() - 1);
+        DataInfo lastSecondDate = dataList.get(dataList.size() - 2);
+        BollInfo lastBoll = bollMap.get(lastDate.getTime());
+        BollInfo lastSecondBoll = bollMap.get(lastSecondDate.getTime());
+        boolean bollUp = lastBoll.getMiddle() > lastSecondBoll.getMiddle();
+        boolean dataAboveBoll = lastDate.getEnd() > lastBoll.getMiddle();
+        if (bollUp && dataAboveBoll) {
+            trend = TREND_UP;
+        } else if (!bollUp && !dataAboveBoll) {
+            trend = TREND_DOWN;
+        }
+        return trend;
+    }
+
+    private int checkMacd(DataInfo lastDate, DataInfo lastSecondDate) {
+        int trend = TREND_NO;
+        if (lastDate.getMacd() >= 0 && lastSecondDate.getMacd() <= 0) {
+            trend = TREND_UP;
+        } else if (lastDate.getMacd() <= 0 && lastSecondDate.getMacd() >= 0) {
+            trend = TREND_DOWN;
+        }
+        return trend;
+    }
+
+    @Override
+    public void updateView() {
+
+    }
+
+    private TaskDetailContract.Presenter mPresenter;
+
+    @Override
+    public void setPresenter(TaskDetailContract.Presenter presenter) {
+        mPresenter = presenter;
     }
 }
