@@ -2,11 +2,18 @@ package com.auto.watchmen;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.auto.watchmen.base.TaskDetailContract;
 import com.auto.watchmen.bean.BollInfo;
 import com.auto.watchmen.bean.DataInfo;
+import com.auto.watchmen.bean.ReportInfo;
 import com.auto.watchmen.db.BollDb;
 import com.auto.watchmen.db.DataInfoDb;
 import com.auto.watchmen.util.DataUtils;
@@ -25,6 +32,7 @@ public class HomeActivity extends Activity implements TaskDetailContract.View {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        initView();
         new HomePresenter(this);
         mPresenter.start();
 
@@ -68,6 +76,68 @@ public class HomeActivity extends Activity implements TaskDetailContract.View {
         SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd/HH/mm");
         Date date = new Date(Long.parseLong("1482826288494"));
         Log.d("big", "test-->" + format.format(date));*/
+    }
+
+    private RecyclerView mRecyclerView;
+    private MyAdapter myAdapter;
+
+    private void initView() {
+        mRecyclerView = (RecyclerView) findViewById(R.id.home_recyler);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        myAdapter = new MyAdapter();
+        /**test**/
+        ArrayList<ReportInfo> list = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            ReportInfo info = new ReportInfo();
+            info.setName("TEST_" + i);
+            list.add(info);
+        }
+        myAdapter.setData(list);
+        mRecyclerView.setAdapter(myAdapter);
+    }
+
+    private class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
+
+        private ArrayList<ReportInfo> mList;
+
+        public void setData(ArrayList<ReportInfo> list) {
+            this.mList = list;
+        }
+
+        @Override
+        public MyViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+            View content = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_home, viewGroup, false);
+            return new MyViewHolder(content);
+        }
+
+        @Override
+        public void onBindViewHolder(MyViewHolder holder, int i) {
+            ReportInfo info = mList.get(i);
+            holder.name.setText(info.getName());
+        }
+
+        @Override
+        public int getItemCount() {
+            return mList == null ? 0 : mList.size();
+        }
+
+        class MyViewHolder extends RecyclerView.ViewHolder {
+            TextView name;
+            View boll;
+            View macd;
+            View weekBoll;
+            View weekMacd;
+
+            public MyViewHolder(View itemView) {
+                super(itemView);
+                name = (TextView) itemView.findViewById(R.id.item_name);
+                boll = itemView.findViewById(R.id.item_boll);
+                macd = itemView.findViewById(R.id.item_macd);
+                weekBoll = itemView.findViewById(R.id.item_week_boll);
+                weekMacd = itemView.findViewById(R.id.item_week_macd);
+            }
+        }
+
     }
 
     private void addDataInfo(String ret) {

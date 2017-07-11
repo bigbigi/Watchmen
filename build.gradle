@@ -24,4 +24,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.squareup.okhttp:okhttp:2.4.0'
     compile files('libs/org.apache.http.legacy.jar')
+    compile 'com.android.support:recyclerview-v7:25.1.0'
 }
