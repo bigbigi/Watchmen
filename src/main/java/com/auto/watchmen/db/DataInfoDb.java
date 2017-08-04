@@ -93,14 +93,14 @@ public class DataInfoDb extends SQLiteOpenHelper {
 
     }
 
-    public ArrayList<DataInfo> getRecord() {
+    public ArrayList<DataInfo> getRecord(String name) {
         ArrayList<DataInfo> recordList = new ArrayList<DataInfo>();
         synchronized (object) {
             Cursor cursor = null;
             DataInfo record = null;
             SQLiteDatabase db = getReadableDatabase();
             try {
-                String sql = "select * from " + TABLE_NAME + " order by " + "time";
+                String sql = "select * from " + TABLE_NAME + " where name=" + name + " order by " + "time";
                 cursor = db.rawQuery(sql, null);
                 if (cursor != null && cursor.getCount() != 0) {
                     for (int i = 0; i < cursor.getCount(); i++) {
@@ -124,14 +124,14 @@ public class DataInfoDb extends SQLiteOpenHelper {
     }
 
     public ArrayList<DataInfo> getDateRecord() {
-        return getRecord("select name,max(time) as time,max(max) as max,min(min) as min,begin,(select end from dataInfo t2 where strftime('%Y-%m-%d',t2.time/1000,'unixepoch')=strftime('%Y-%m-%d',t1.time/1000,'unixepoch') order by time desc limit 1) as end from " + TABLE_NAME + " t1 group by strftime('%Y-%m-%d',time/1000,'unixepoch')");
+        return getRecordBySql("select name,max(time) as time,max(max) as max,min(min) as min,begin,(select end from dataInfo t2 where strftime('%Y-%m-%d',t2.time/1000,'unixepoch')=strftime('%Y-%m-%d',t1.time/1000,'unixepoch') order by time desc limit 1) as end from " + TABLE_NAME + " t1 group by strftime('%Y-%m-%d',time/1000,'unixepoch')");
     }
 
     public ArrayList<DataInfo> getWeekRecord() {
-        return getRecord("select name,max(time) as time,max(max) as max,min(min) as min,begin,(select end from dataInfo t2 where strftime('%Y-%W',t2.time/1000,'unixepoch')=strftime('%Y-%W',t1.time/1000,'unixepoch') order by time desc limit 1) as end from " + TABLE_NAME + " t1 group by strftime('%Y-%W',time/1000,'unixepoch')");
+        return getRecordBySql("select name,max(time) as time,max(max) as max,min(min) as min,begin,(select end from dataInfo t2 where strftime('%Y-%W',t2.time/1000,'unixepoch')=strftime('%Y-%W',t1.time/1000,'unixepoch') order by time desc limit 1) as end from " + TABLE_NAME + " t1 group by strftime('%Y-%W',time/1000,'unixepoch')");
     }
 
-    public ArrayList<DataInfo> getRecord(String sql) {
+    public ArrayList<DataInfo> getRecordBySql(String sql) {
         ArrayList<DataInfo> recordList = new ArrayList<DataInfo>();
         synchronized (object) {
             Cursor cursor = null;

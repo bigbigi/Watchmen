@@ -71,4 +71,5 @@ public class HomePresenter implements TaskDetailContract.Presenter {
             }
         });
     }
+
 }
