@@ -10,7 +10,11 @@ import android.util.Log;
 
 import com.auto.watchmen.bean.DataInfo;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class DataInfoDb extends SQLiteOpenHelper {
     private Context mContext;
@@ -36,7 +40,10 @@ public class DataInfoDb extends SQLiteOpenHelper {
     public DataInfoDb(Context context) {
         super(context, DBNAME, null, VERSION);
         mContext = context;
+        mSimpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
+
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     public boolean check(DataInfo record) {
         boolean haveRecord = false;
@@ -44,7 +51,8 @@ public class DataInfoDb extends SQLiteOpenHelper {
             Cursor c = null;
             SQLiteDatabase db = getWritableDatabase();
             if (db != null) {
-                c = db.query(TABLE_NAME, null, " time=?", new String[]{String.valueOf(record.getTime())}, null, null, null);
+//                c = db.query(TABLE_NAME, null, " time=?", new String[]{String.valueOf(record.getTime())}, null, null, null);
+                c = db.query(TABLE_NAME, null, " strftime('%Y-%m-%d',time/1000,'unixepoch')=?", new String[]{mSimpleDateFormat.format(new Date(record.getTime()))}, null, null, null);
                 haveRecord = c.moveToNext();
             }
             db.close();
@@ -52,21 +60,9 @@ public class DataInfoDb extends SQLiteOpenHelper {
         return haveRecord;
     }
 
-//    public boolean check(String value, String userId) {
-//        boolean haveRecord = false;
-//        synchronized (object) {
-//            SQLiteDatabase db = getWritableDatabase();
-//            if (db != null) {
-//                Cursor c = db.query(TABLE_NAME, null, " time=?", new String[]{userId, value}, null, null, null);
-//                haveRecord = c.moveToNext();
-//            }
-//            db.close();
-//        }
-//        return haveRecord;
-//    }
-
     public void addRecord(DataInfo record) {
         if (check(record)) {
+            Log.d("big", "duplication date:" + mSimpleDateFormat.format(new Date(record.getTime())));
             return;
         }
         synchronized (object) {
@@ -94,51 +90,29 @@ public class DataInfoDb extends SQLiteOpenHelper {
     }
 
     public ArrayList<DataInfo> getRecord(String name) {
-        ArrayList<DataInfo> recordList = new ArrayList<DataInfo>();
-        synchronized (object) {
-            Cursor cursor = null;
-            DataInfo record = null;
-            SQLiteDatabase db = getReadableDatabase();
-            try {
-                String sql = "select * from " + TABLE_NAME + " where name=" + name + " order by " + "time";
-                cursor = db.rawQuery(sql, null);
-                if (cursor != null && cursor.getCount() != 0) {
-                    for (int i = 0; i < cursor.getCount(); i++) {
-                        if (cursor.moveToNext()) {
-                            record = convert2Record(cursor);
-                            recordList.add(record);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (null != cursor) {
-                    cursor.close();
-                }
-                db.close();
-            }
-            Log.d("big", "arraylist record= " + recordList.size());
-        }
-        return recordList;
+        return getRecordBySql("select * from " + TABLE_NAME + " where name=?" + " order by " + "time", new String[]{name});
     }
 
     public ArrayList<DataInfo> getDateRecord() {
-        return getRecordBySql("select name,max(time) as time,max(max) as max,min(min) as min,begin,(select end from dataInfo t2 where strftime('%Y-%m-%d',t2.time/1000,'unixepoch')=strftime('%Y-%m-%d',t1.time/1000,'unixepoch') order by time desc limit 1) as end from " + TABLE_NAME + " t1 group by strftime('%Y-%m-%d',time/1000,'unixepoch')");
+        return getRecordBySql("select name,max(time) as time,max(max) as max,min(min) as min,begin,(select end from dataInfo t2 where strftime('%Y-%m-%d',t2.time/1000,'unixepoch')=strftime('%Y-%m-%d',t1.time/1000,'unixepoch') order by time desc limit 1) as end from " + TABLE_NAME + " t1 group by strftime('%Y-%m-%d',time/1000,'unixepoch')", null);
     }
 
     public ArrayList<DataInfo> getWeekRecord() {
-        return getRecordBySql("select name,max(time) as time,max(max) as max,min(min) as min,begin,(select end from dataInfo t2 where strftime('%Y-%W',t2.time/1000,'unixepoch')=strftime('%Y-%W',t1.time/1000,'unixepoch') order by time desc limit 1) as end from " + TABLE_NAME + " t1 group by strftime('%Y-%W',time/1000,'unixepoch')");
+        return getRecordBySql("select name,max(time) as time,max(max) as max,min(min) as min,begin,(select end from dataInfo t2 where strftime('%Y-%W',t2.time/1000,'unixepoch')=strftime('%Y-%W',t1.time/1000,'unixepoch') order by time desc limit 1) as end from " + TABLE_NAME + " t1 group by strftime('%Y-%W',time/1000,'unixepoch')", null);
     }
 
-    public ArrayList<DataInfo> getRecordBySql(String sql) {
+    public ArrayList<DataInfo> getTotalRecordName() {
+        return getRecordBySql("select * from " + TABLE_NAME + " group by name", null);
+    }
+
+    public ArrayList<DataInfo> getRecordBySql(String sql, String[] args) {
         ArrayList<DataInfo> recordList = new ArrayList<DataInfo>();
         synchronized (object) {
             Cursor cursor = null;
             DataInfo record = null;
             SQLiteDatabase db = getReadableDatabase();
             try {
-                cursor = db.rawQuery(sql, null);
+                cursor = db.rawQuery(sql, args);
                 if (cursor != null && cursor.getCount() != 0) {
                     for (int i = 0; i < cursor.getCount(); i++) {
                         if (cursor.moveToNext()) {

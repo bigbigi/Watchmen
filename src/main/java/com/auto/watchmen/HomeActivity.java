@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.auto.watchmen.bean.BollInfo;
 import com.auto.watchmen.bean.DataInfo;
 import com.auto.watchmen.bean.ReportInfo;
 import com.auto.watchmen.db.DataInfoDb;
@@ -17,13 +19,18 @@ import com.auto.watchmen.util.Analytic;
 import com.auto.watchmen.util.DataUtils;
 import com.auto.watchmen.util.HomeBiz;
 
-import org.apache.http.protocol.HTTP;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class HomeActivity extends Activity {
 
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +38,7 @@ public class HomeActivity extends Activity {
         setContentView(R.layout.activity_home);
         initView();
         HomeBiz.getInstance(this).start();
+        Log.d("big", "date:" + mSimpleDateFormat.format(new Date(System.currentTimeMillis())));
 
         new Thread() {
             @Override
@@ -41,7 +49,7 @@ public class HomeActivity extends Activity {
                     DataInfo info = new DataInfo();
                     info.setName("test");
                     info.setBegin(current);
-                    current += 10 /*+ Math.random()*/;
+                    current += 10 + Math.random();
                     info.setEnd(current);
                     info.setMax(Math.max((float) (current + Math.random()), current));
                     info.setMin((float) (current - Math.random()));
@@ -53,6 +61,7 @@ public class HomeActivity extends Activity {
                 for (DataInfo info : dateInfos) {
                     Log.d("big", "info:" + info.toString());
                 }
+                getData();
             }
         }.start();
 
@@ -78,13 +87,19 @@ public class HomeActivity extends Activity {
     }
 
     public void getData() {
-        List<DataInfo> list = DataInfoDb.getInstance(HomeActivity.this).getRecord("test");
-        List<DataInfo> weekList = Analytic.getWeekDataInfo(list);
-        Analytic.getBollInfo(99, weekList);
-        Analytic.getMacdInfo(1, 1, 1, weekList);
-        Analytic.getBollInfo(99, list);
-        Analytic.getMacdInfo(1, 1, 1, list);
+        List<DataInfo> totalNames = DataInfoDb.getInstance(HomeActivity.this).getTotalRecordName();
+        for (DataInfo name : totalNames) {
+            if (TextUtils.isEmpty(name.getName())) continue;
+            List<DataInfo> list = DataInfoDb.getInstance(HomeActivity.this).getRecord(name.getName());
+            List<DataInfo> weekList = Analytic.getWeekDataInfo(list);
+            HashMap<Long, BollInfo> weekBolls = Analytic.getBollInfo(99, weekList);
+            Analytic.getMacdInfo(1, 1, 1, weekList);
+            HashMap<Long, BollInfo> bolls = Analytic.getBollInfo(99, list);
+            Analytic.getMacdInfo(1, 1, 1, list);
+            Log.d("big", "names:" + name.getName() + ",list:" + list.size() + ",week:" + weekList.size());
 //        Analytic.checkBollTrend(list,)
+        }
+
     }
 
     private class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {

@@ -19,9 +19,9 @@ public class Analytic {
     private static final int TREND_DOWN = -1;
     private static final int TREND_NO = 0;
 
-    public static ArrayList<BollInfo> getBollInfo(int params, List<DataInfo> dataList) {
+    public static HashMap<Long, BollInfo> getBollInfo(int params, List<DataInfo> dataList) {
 //        ArrayList<DataInfo> dataList = DataInfoDb.getInstance(HomeActivity.this).getRecord();
-        ArrayList<BollInfo> bollList = new ArrayList<>();
+        HashMap<Long, BollInfo> bollList = new HashMap<>();
         float currentTotal = 0;
         for (int i = 0; i < dataList.size(); i++) {
             currentTotal += dataList.get(i).getEnd();
@@ -30,7 +30,6 @@ public class Analytic {
                 currentTotal -= dataList.get(i - params).getEnd();
             }
             BollInfo bollInfo = new BollInfo();
-            bollList.add(bollInfo);
             float MA = currentTotal / params;
             float sum = 0;
             for (int j = i + 1 - params; j <= i; j++) {
@@ -43,6 +42,7 @@ public class Analytic {
             bollInfo.setMiddle(MA);
             bollInfo.setTop(MA + MD * k);
             bollInfo.setBottom(MA - MD * k);
+            bollList.put(bollInfo.getTime(), bollInfo);
             Log.d("big", "i==" + i + ",boll-->" + bollInfo);
         }
         return bollList;
@@ -83,7 +83,7 @@ public class Analytic {
             if (start == 0) {
                 start = info.getBegin();
             }
-            if (calendar.get(Calendar.DAY_OF_WEEK) == 6) {
+            if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
                 DataInfo weekInfo = new DataInfo();
                 weekInfo.setTime(info.getTime());
                 weekInfo.setEnd(info.getEnd());

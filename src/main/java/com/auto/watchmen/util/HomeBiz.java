@@ -10,6 +10,7 @@ import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.auto.watchmen.R;
 import com.auto.watchmen.RefreshReceiver;
 import com.auto.watchmen.bean.DataInfo;
 import com.auto.watchmen.db.DataInfoDb;
@@ -73,11 +74,15 @@ public class HomeBiz {
 
     public void start() {
         request();
-        postNextRequest();
     }
 
     public void request() {
-        mTaskHandler.post(mXAU);
+        postNextRequest();
+//        mTaskHandler.post(mXAU);
+        String[] goodsArray = mContext.getResources().getStringArray(R.array.goodsName);
+        for (String name : goodsArray) {
+            mTaskHandler.post(new DataRunnable(String.format(BASE_URL, name)));
+        }
     }
 
     private DataRunnable mXAU = new DataRunnable(String.format(BASE_URL, "hf_XAU"));
