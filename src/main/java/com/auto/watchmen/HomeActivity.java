@@ -18,6 +18,7 @@ import com.auto.watchmen.db.DataInfoDb;
 import com.auto.watchmen.util.Analytic;
 import com.auto.watchmen.util.DataUtils;
 import com.auto.watchmen.util.HomeBiz;
+import com.cgutman.AdbTest;
 
 
 import java.text.SimpleDateFormat;
@@ -37,10 +38,10 @@ public class HomeActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         initView();
-        HomeBiz.getInstance(this).start();
+//        HomeBiz.getInstance(this).start();
         Log.d("big", "date:" + mSimpleDateFormat.format(new Date(System.currentTimeMillis())));
 
-        new Thread() {
+        /*new Thread() {
             @Override
             public void run() {
                 float current = 1;
@@ -63,8 +64,13 @@ public class HomeActivity extends Activity {
                 }
                 getData();
             }
+        }.start();*/
+        new Thread() {
+            @Override
+            public void run() {
+                AdbTest.main(HomeActivity.this);
+            }
         }.start();
-
     }
 
 
