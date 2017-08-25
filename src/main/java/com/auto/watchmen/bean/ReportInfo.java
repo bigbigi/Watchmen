@@ -33,4 +33,20 @@ public class ReportInfo {
     public int getWeekMacd() {
         return weekMacd;
     }
+
+    public void setBoll(int boll) {
+        this.boll = boll;
+    }
+
+    public void setMacd(int macd) {
+        this.macd = macd;
+    }
+
+    public void setWeekBoll(int weekBoll) {
+        this.weekBoll = weekBoll;
+    }
+
+    public void setWeekMacd(int weekMacd) {
+        this.weekMacd = weekMacd;
+    }
 }

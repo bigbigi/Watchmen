@@ -15,9 +15,9 @@ import java.util.List;
  * Created by dage on 2017/7/17.
  */
 public class Analytic {
-    private static final int TREND_UP = 1;
-    private static final int TREND_DOWN = -1;
-    private static final int TREND_NO = 0;
+    public static final int TREND_UP = 1;
+    public static final int TREND_DOWN = -1;
+    public static final int TREND_NO = 0;
 
     public static HashMap<Long, BollInfo> getBollInfo(int params, List<DataInfo> dataList) {
 //        ArrayList<DataInfo> dataList = DataInfoDb.getInstance(HomeActivity.this).getRecord();

@@ -16,9 +16,7 @@ import com.auto.watchmen.bean.DataInfo;
 import com.auto.watchmen.bean.ReportInfo;
 import com.auto.watchmen.db.DataInfoDb;
 import com.auto.watchmen.util.Analytic;
-import com.auto.watchmen.util.DataUtils;
 import com.auto.watchmen.util.HomeBiz;
-import com.cgutman.AdbTest;
 
 
 import java.text.SimpleDateFormat;
@@ -26,8 +24,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
 
 public class HomeActivity extends Activity {
 
@@ -38,9 +34,8 @@ public class HomeActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         initView();
-//        HomeBiz.getInstance(this).start();
+        HomeBiz.getInstance(this).start();
         Log.d("big", "date:" + mSimpleDateFormat.format(new Date(System.currentTimeMillis())));
-
         /*new Thread() {
             @Override
             public void run() {
@@ -65,23 +60,23 @@ public class HomeActivity extends Activity {
                 getData();
             }
         }.start();*/
-        new Thread() {
+        /*new Thread() {
             @Override
             public void run() {
                 AdbTest.main(HomeActivity.this);
             }
-        }.start();
+        }.start();*/
     }
 
 
     private RecyclerView mRecyclerView;
-    private MyAdapter myAdapter;
+    private MyAdapter mAdapter;
 
     private void initView() {
         mRecyclerView = (RecyclerView) findViewById(R.id.home_recyler);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
-        myAdapter = new MyAdapter();
-        mRecyclerView.setAdapter(myAdapter);
+        mAdapter = new MyAdapter();
+        mRecyclerView.setAdapter(mAdapter);
         /**test**/
         ArrayList<ReportInfo> list = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -89,11 +84,12 @@ public class HomeActivity extends Activity {
             info.setName("TEST_" + i);
             list.add(info);
         }
-        myAdapter.setData(list);
+        mAdapter.setData(list);
     }
 
     public void getData() {
         List<DataInfo> totalNames = DataInfoDb.getInstance(HomeActivity.this).getTotalRecordName();
+        final ArrayList<ReportInfo> reports = new ArrayList<>();
         for (DataInfo name : totalNames) {
             if (TextUtils.isEmpty(name.getName())) continue;
             List<DataInfo> list = DataInfoDb.getInstance(HomeActivity.this).getRecord(name.getName());
@@ -103,9 +99,23 @@ public class HomeActivity extends Activity {
             HashMap<Long, BollInfo> bolls = Analytic.getBollInfo(99, list);
             Analytic.getMacdInfo(1, 1, 1, list);
             Log.d("big", "names:" + name.getName() + ",list:" + list.size() + ",week:" + weekList.size());
+            if (list.size() > 2 && weekList.size() > 2) {//set report
+                ReportInfo report = new ReportInfo();
+                report.setName(name.getName());
+                report.setBoll(Analytic.checkBollTrend(list, bolls));
+                report.setMacd(Analytic.checkMacd(list.get(list.size() - 1), list.get(list.size() - 2)));
+                report.setWeekBoll(Analytic.checkBollTrend(weekList, weekBolls));
+                report.setMacd(Analytic.checkMacd(weekList.get(weekList.size() - 1), weekList.get(weekList.size() - 2)));
+                reports.add(report);
+            }
 //        Analytic.checkBollTrend(list,)
         }
-
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mAdapter.setData(reports);
+            }
+        });
     }
 
     private class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
@@ -127,6 +137,15 @@ public class HomeActivity extends Activity {
         public void onBindViewHolder(MyViewHolder holder, int i) {
             ReportInfo info = mList.get(i);
             holder.name.setText(info.getName());
+            setState(holder.boll, info.getBoll());
+            setState(holder.macd, info.getMacd());
+            setState(holder.weekBoll, info.getWeekBoll());
+            setState(holder.weekMacd, info.getWeekMacd());
+        }
+
+        private void setState(View v, int trend) {
+            v.setSelected(trend == Analytic.TREND_UP);
+            v.setEnabled(trend == Analytic.TREND_DOWN);
         }
 
         @Override
