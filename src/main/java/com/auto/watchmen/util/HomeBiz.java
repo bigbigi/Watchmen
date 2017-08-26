@@ -109,17 +109,34 @@ public class HomeBiz {
                 String ret = response.body().string();
                 Log.d(TAG, "ret:" + ret);
                 if (TextUtils.isEmpty(ret)) return;
-                String[] params = ret.split("\"")[1].split(",");
-                DataInfo info = new DataInfo();
-                info.setEnd(Utils.parseFloat(params[0]));
-                info.setMax(Utils.parseFloat(params[4]));
-                info.setMin(Utils.parseFloat(params[5]));
-                info.setBegin(Utils.parseFloat(params[8]));
-                Log.d(TAG, "info:" + info);
-                DataInfoDb.getInstance(mContext).addRecord(info);//add to db;
+                DataInfoDb.getInstance(mContext).addRecord(parseChina(ret));//add to db;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+    private DataInfo parseChina(String ret){
+        String[] params = ret.split("\"")[1].split(",");
+        DataInfo info = new DataInfo();
+        info.setName(params[0]);
+        info.setTime(System.currentTimeMillis());
+        info.setEnd(Utils.parseFloat(params[8]));
+        info.setMax(Utils.parseFloat(params[3]));
+        info.setMin(Utils.parseFloat(params[4]));
+        info.setBegin(Utils.parseFloat(params[2]));
+        Log.d(TAG, "info:" + info);
+        return info;
+    }
+    private DataInfo parseInterNation(String ret){
+        String[] params = ret.split("\"")[1].split(",");
+        DataInfo info = new DataInfo();
+        info.setTime(System.currentTimeMillis());
+        info.setName(params[params.length-1]);
+        info.setEnd(Utils.parseFloat(params[0]));
+        info.setMax(Utils.parseFloat(params[4]));
+        info.setMin(Utils.parseFloat(params[5]));
+        info.setBegin(Utils.parseFloat(params[8]));
+        Log.d(TAG, "info:" + info);
+        return info;
     }
 }

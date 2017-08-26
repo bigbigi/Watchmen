@@ -1,8 +1,10 @@
 package com.cgutman;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,7 +73,7 @@ public class AdbTest {
         return c;
     }
 
-    public static void main(Context context) {
+    public static void main(final Context context) {
         Scanner in = new Scanner(System.in);
         AdbConnection adb;
         Socket sock;
@@ -95,7 +97,7 @@ public class AdbTest {
         // Connect the socket to the remote host
         System.out.println("Socket connecting...");
         try {
-            sock = new Socket(/*"192.168.1.137"*/"127.0.0.1", 5555);
+            sock = new Socket(/*"192.168.1.104"*/"127.0.0.1", 5555);
         } catch (UnknownHostException e) {
             e.printStackTrace();
             return;
@@ -116,6 +118,12 @@ public class AdbTest {
         // Start the application layer connection process
         System.out.println("ADB connecting...");
         Log.e("big", "ADB connecting...");
+        ((Activity)context).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(context,"connecting",Toast.LENGTH_LONG).show();
+            }
+        });
         try {
             adb.connect();
         } catch (IOException e) {
@@ -128,6 +136,12 @@ public class AdbTest {
             return;
         }
         System.out.println("ADB connected");
+        ((Activity)context).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(context,"connected",Toast.LENGTH_LONG).show();
+            }
+        });
         Log.e("big", "ADB connected");
         // Open the shell stream of ADB
         final AdbStream stream;
@@ -180,7 +194,7 @@ public class AdbTest {
             }
         }*/
         try {
-            stream.write("monkey -p net.myvst.v2 50" + '\n');
+            stream.write("monkey -f /sdcard/monkey.txt 50" + '\n');
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

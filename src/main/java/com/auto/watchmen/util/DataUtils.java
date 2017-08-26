@@ -2,6 +2,7 @@ package com.auto.watchmen.util;
 
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.auto.watchmen.bean.DataInfo;
@@ -12,6 +13,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -71,26 +73,32 @@ public class DataUtils {
 //                getMacdInfo(1, 1, 1, list);
             }
         }.start();
-        SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd/HH/mm");
-        Date date = new Date(Long.parseLong("1482826288494"));
-        Log.d("big", "test-->" + format.format(date));
     }
 
     public static void addDataInfo(Context context, String ret) {
         String[] row = ret.split("\\n");
         Log.d("big", "row-->" + row.length);
-        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat format=new SimpleDateFormat("yyyy/MM/dd");
+        String name="";
         for (String current : row) {
-            Log.d("big", "current-->" + current);
+            //Log.d("big", "text-->" + current);
+            current=current.trim();
             String[] array = current.split("\\s+");
             DataInfo info = new DataInfo();
-            info.setName("test");
+            if(TextUtils.isEmpty(name)){
+                name=current;
+                continue;
+            }
+            info.setName(name);
             String time = array[0].trim();
             String[] timeArray = time.split("/");
-            calendar.set(Calendar.DAY_OF_YEAR, Integer.parseInt(timeArray[0]));
-            calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(timeArray[1]));
-            calendar.set(Calendar.DATE, Integer.parseInt(timeArray[2]));
-            info.setTime(calendar.getTimeInMillis());
+           // Log.d("big","time:"+time+"length:"+timeArray.length);
+            if(timeArray.length<2) continue;
+            try {
+                info.setTime(format.parse(time).getTime());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
             info.setBegin(Float.parseFloat(array[1].trim()));
             info.setMax(Float.parseFloat(array[2].trim()));
             info.setMin(Float.parseFloat(array[3].trim()));

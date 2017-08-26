@@ -16,6 +16,7 @@ import com.auto.watchmen.bean.DataInfo;
 import com.auto.watchmen.bean.ReportInfo;
 import com.auto.watchmen.db.DataInfoDb;
 import com.auto.watchmen.util.Analytic;
+import com.auto.watchmen.util.DataUtils;
 import com.auto.watchmen.util.HomeBiz;
 
 
@@ -34,8 +35,10 @@ public class HomeActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         initView();
-        HomeBiz.getInstance(this).start();
+       // HomeBiz.getInstance(this).start();
         Log.d("big", "date:" + mSimpleDateFormat.format(new Date(System.currentTimeMillis())));
+
+       DataUtils.pushData(this);
         /*new Thread() {
             @Override
             public void run() {

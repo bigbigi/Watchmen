@@ -1,5 +1,7 @@
 <resources>
     <string-array name="goodsName">
-        <item>hf_XAU</item>
+        <item>AG0</item>
+        <item>AU0</item>
     </string-array>
+ <!--   <item>hf_XAU</item>-->
 </resources>
