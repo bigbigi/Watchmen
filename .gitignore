@@ -1,6 +1,17 @@
-/build
 *.iml
-.iml
-.idea/
+.gradle
+.idea
+/local.properties
+/gradle
+.DS_Store
+/build
+*/build
+/build-small
+/captures
+.externalNativeBuild
+gradlew*
+*/smallLibs
+*/update*
 *.apk
+
 
